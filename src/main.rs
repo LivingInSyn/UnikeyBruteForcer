@@ -1,11 +1,27 @@
 extern crate md5;
+extern crate clap;
+use clap::{Arg, App};
 use std::thread;
 
 fn main() {
-    let num_threads: u32 = 8;
-    let upass1: u16 = 52868;
-    let upass2: u16 = 198;
-
+    let matches = App::new("UnikeyBruteForcer")
+        .version("0.1.0")
+        .author("Jeremy Mill <jeremymill@gmail.com>")
+        .about("https://github.com/LivingInSyn/UnikeyBruteForcer")
+        .arg(Arg::with_name("upass1")
+            .help("User password 1")
+            .required(true))
+        .arg(Arg::with_name("upass2")
+            .help("User password 2")
+            .required(true))
+        .arg(Arg::with_name("threads")
+            .help("Number of threads to run with"))
+        .get_matches();
+    // num threads
+    let num_threads = matches.value_of("threads").unwrap_or("8").parse::<u32>().unwrap();
+    let upass1: u16 = matches.value_of("upass1").unwrap().parse::<u16>().unwrap();
+    let upass2: u16 = matches.value_of("upass2").unwrap().parse::<u16>().unwrap();
+    
     let num_per_thread: u32 = 0xFFFFFFFF/num_threads;
 
     let mut children = vec![];
