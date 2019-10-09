@@ -2,6 +2,7 @@ extern crate md5;
 extern crate clap;
 use clap::{Arg, App};
 use std::thread;
+use std::time::{SystemTime};
 
 fn main() {
     let matches = App::new("UnikeyBruteForcer")
@@ -16,13 +17,21 @@ fn main() {
             .required(true))
         .arg(Arg::with_name("threads")
             .help("Number of threads to run with"))
+        .arg(Arg::with_name("v")
+            .short("v")
+            .multiple(true))
         .get_matches();
     // num threads
     let num_threads = matches.value_of("threads").unwrap_or("8").parse::<u32>().unwrap();
     let upass1: u16 = matches.value_of("upass1").unwrap().parse::<u16>().unwrap();
     let upass2: u16 = matches.value_of("upass2").unwrap().parse::<u16>().unwrap();
-    
+    let verbose: bool = match matches.occurrences_of("v") {
+        0 => false,
+        _ => true
+    };
     let num_per_thread: u32 = 0xFFFFFFFF/num_threads;
+
+    let now = SystemTime::now();
 
     let mut children = vec![];
     for threadnum in 0..num_threads {
@@ -33,18 +42,34 @@ fn main() {
         }
         children.push(thread::spawn(move || {
             // println!("this is thread number {}:{}:{}", threadnum, start, end);
-            brute_pins(start, end, upass1, upass2);
+            brute_pins(start, end, upass1, upass2, threadnum, verbose);
         }));
     }
     for child in children {
         // Wait for the thread to finish. Returns a result.
         let _ = child.join();
     }
+
+    match now.elapsed() {
+       Ok(elapsed) => {
+           // it prints '2'
+           println!("Finished in: {}", elapsed.as_secs());
+       }
+       Err(e) => {
+           // an error occurred!
+           println!("Error: {:?}", e);
+       }
+   }
 }
 
-fn brute_pins(start: u32, end: u32, upass1: u16, upass2: u16) {
+fn brute_pins(start: u32, end: u32, upass1: u16, upass2: u16,
+              thread: u32, status: bool) {
+    //let mut qs: [bool;4] = [false;4];
     for seed in start..end as u32 {
-        //let bytes: [u8; 4] = unsafe { transmute(seed.to_be()) };
+        if status && thread == 0 && (end - seed) % 1000000 == 0 {
+            let perc = ((seed - start) as f32 / (end-start) as f32)*100f32;
+            println!("Percent: {:.20}", perc);
+        }
         let bytes = transform_u32_to_array_of_u8(seed);
         let digest = md5::compute(bytes);
         let mut acstack444 = digest.to_vec();
