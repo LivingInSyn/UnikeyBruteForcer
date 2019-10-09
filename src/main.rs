@@ -23,8 +23,10 @@ fn main() {
         .get_matches();
     // num threads
     let num_threads = matches.value_of("threads").unwrap_or("8").parse::<u32>().unwrap();
+    // passwords
     let upass1: u16 = matches.value_of("upass1").unwrap().parse::<u16>().unwrap();
     let upass2: u16 = matches.value_of("upass2").unwrap().parse::<u16>().unwrap();
+    // verbose logging
     let verbose: bool = match matches.occurrences_of("v") {
         0 => false,
         _ => true
@@ -68,9 +70,9 @@ fn brute_pins(start: u32, end: u32, upass1: u16, upass2: u16,
     for seed in start..end as u32 {
         if status && thread == 0 && (end - seed) % 1000000 == 0 {
             let perc = ((seed - start) as f32 / (end-start) as f32)*100f32;
-            println!("Percent: {:.20}", perc);
+            println!("Percent: {:.2}", perc);
         }
-        let bytes = transform_u32_to_array_of_u8(seed);
+        let bytes = seed.to_le_bytes();
         let digest = md5::compute(bytes);
         let mut acstack444 = digest.to_vec();
         for _ in 0..4{
@@ -99,12 +101,4 @@ fn bitwise_ops(digest: md5::Digest) -> [u8;8] {
         local_8c[ivar5] = local_8c[ivar5] ^ digest[local_68];
     }
     return local_8c;
-}
-
-fn transform_u32_to_array_of_u8(x:u32) -> [u8;4] {
-    let b1 : u8 = ((x >> 24) & 0xff) as u8;
-    let b2 : u8 = ((x >> 16) & 0xff) as u8;
-    let b3 : u8 = ((x >> 8) & 0xff) as u8;
-    let b4 : u8 = (x & 0xff) as u8;
-    return [b4, b3, b2, b1]
 }

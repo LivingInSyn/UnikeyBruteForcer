@@ -11,7 +11,7 @@ Once it's installed run `cargo build --release`
 It will be in `.\target\release\brute_unikey[.exe]`
 
 ## To Run
-`brute_unikey.exe <upass1> <upass2> [threads]`
+`brute_unikey.exe [-v] <upass1> <upass2> [threads]`
 
 ## What next?
 Try and logon to the unikey dongle using the suggested admin passwords along with the user passwords you've already got. You can use the handlily provided unikey console provided by secutech in their SDK
